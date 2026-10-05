@@ -24,7 +24,7 @@ public class Core : BasePlugin, IPluginConfig<RetakesAllocatorConfig>
     public static Core Plugin = null!;
 
     public override string ModuleName => "[Retakes] Weapons Allocator";
-    public override string ModuleVersion => "3.2.5";
+    public override string ModuleVersion => "3.2.5-roundtypes";
     public override string ModuleAuthor => "Ravid & B3none";
     public override string ModuleDescription => "Weapons Allocator plugin for retakes";
 
@@ -40,6 +40,7 @@ public class Core : BasePlugin, IPluginConfig<RetakesAllocatorConfig>
     public static WeaponStore Store = null!;
     public static List<Player> Players = new();
     public static int RoundsCounter = 0;
+    public static RoundType CurrentRoundType = RoundType.FullBuy;
     public static AsyncVoteManager CurrentVote = null!;
     public static ConVar mp_damage_headshot_only = null!;
 

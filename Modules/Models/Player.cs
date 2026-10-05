@@ -138,9 +138,21 @@ public class Player
         // now would hand out weapons this round is not supposed to allow. Warmup has no such rules.
         if (GetGameRules() is not { WarmupPeriod: true })
         {
-            if (RoundsCounter < Core.Config.PistolRound.RoundAmount || CurrentVote != null!)
+            if (CurrentRoundType is RoundType.Pistol or RoundType.Vote)
             {
                 return;
+            }
+
+            // A half buy's primary is the SMG/shotgun it rolled, not the saved rifle. The pistol is
+            // the player's own, so a pistol change can still go through.
+            if (CurrentRoundType == RoundType.HalfBuy)
+            {
+                primaryChanged = false;
+
+                if (!secondaryChanged)
+                {
+                    return;
+                }
             }
         }
 
@@ -183,14 +195,7 @@ public class Player
         // `is { }` keeps this safe if the game rules entity cannot be resolved.
         var warmup = GetGameRules() is { WarmupPeriod: true };
 
-        if(!warmup && RoundsCounter < Core.Config.PistolRound.RoundAmount)
-        {
-            WeaponsAllocator.AllocatePistolRound();
-            WeaponsAllocator.AllocateArmor(false);
-            return;
-        }
-
-        if(warmup || CurrentVote == null!)
+        if (warmup)
         {
             WeaponsAllocator.Allocate();
             WeaponsAllocator.AllocateNades();
@@ -198,24 +203,77 @@ public class Player
             return;
         }
 
-        var vote = CurrentVote.Vote;
-
-        if(vote.GiveArmor)
+        switch (CurrentRoundType)
         {
-            WeaponsAllocator.AllocateArmor(vote.GiveHelmet);
-        }
+            case RoundType.Pistol:
+            {
+                var pistol = Core.Config.PistolRound;
 
-        if(vote.GiveNades)
-        {
-            WeaponsAllocator.AllocateNades();
-        }
+                WeaponsAllocator.AllocatePistolRound();
 
-        if(vote.GiveWeapons)
-        {
-            WeaponsAllocator.AllocateVote(vote);
-            return;
-        }
+                if (pistol.GiveArmor)
+                {
+                    WeaponsAllocator.AllocateArmor(pistol.GiveHelmet);
+                }
 
-        WeaponsAllocator.Allocate();
+                if (pistol.GiveNades)
+                {
+                    WeaponsAllocator.AllocateNades();
+                }
+
+                return;
+            }
+
+            case RoundType.HalfBuy:
+            {
+                var halfBuy = Core.Config.HalfBuy;
+
+                WeaponsAllocator.AllocateHalfBuy();
+
+                if (halfBuy.GiveArmor)
+                {
+                    WeaponsAllocator.AllocateArmor(halfBuy.GiveHelmet);
+                }
+
+                if (halfBuy.GiveNades)
+                {
+                    WeaponsAllocator.AllocateNades();
+                }
+
+                return;
+            }
+
+            // The vote was running at round start. If it was cancelled since, fall through to a
+            // full buy rather than dereferencing a vote that is gone.
+            case RoundType.Vote when CurrentVote != null!:
+            {
+                var vote = CurrentVote.Vote;
+
+                if(vote.GiveArmor)
+                {
+                    WeaponsAllocator.AllocateArmor(vote.GiveHelmet);
+                }
+
+                if(vote.GiveNades)
+                {
+                    WeaponsAllocator.AllocateNades();
+                }
+
+                if(vote.GiveWeapons)
+                {
+                    WeaponsAllocator.AllocateVote(vote);
+                    return;
+                }
+
+                WeaponsAllocator.Allocate();
+                return;
+            }
+
+            default:
+                WeaponsAllocator.Allocate();
+                WeaponsAllocator.AllocateNades();
+                WeaponsAllocator.AllocateArmor();
+                return;
+        }
     }
 }

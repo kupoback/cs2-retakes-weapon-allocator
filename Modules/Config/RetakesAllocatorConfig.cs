@@ -23,6 +23,12 @@ public class RetakesAllocatorConfig : BasePluginConfig
     [JsonPropertyName("PistolRound")]
     public PistolRoundConfig PistolRound { get; set; } = new();
 
+    [JsonPropertyName("RoundTypes")]
+    public RoundTypesConfig RoundTypes { get; set; } = new();
+
+    [JsonPropertyName("HalfBuy")]
+    public HalfBuyConfig HalfBuy { get; set; } = new();
+
     [JsonPropertyName("TriggerWords")]
     public string[] TriggerWords { get; set; } = { "guns", "gun", "weapon", "weapons" };
 
@@ -120,9 +126,46 @@ public class PrefixConfig
 
 public class PistolRoundConfig
 {
+    /// <summary>How many guaranteed pistol rounds open each map. Random pistol rounds come on top.</summary>
     public int RoundAmount { get; init; } = 2;
     public string WeaponT { get; init; } = "weapon_glock";
     public string WeaponCt { get; init; } = "weapon_usp_silencer";
+
+    // Defaults reproduce the old hardcoded behaviour: kevlar, no helmet, no grenades.
+    public bool GiveArmor { get; set; } = true;
+    public bool GiveHelmet { get; set; } = false;
+    public bool GiveNades { get; set; } = false;
+}
+
+/// <summary>
+/// Random round types for every round after the opening pistol rounds. Disabled by default so an
+/// existing server keeps behaving the same until it opts in.
+/// </summary>
+public class RoundTypesConfig
+{
+    public bool Enabled { get; set; } = false;
+
+    // Weights, not strict percentages - see RoundTypeSelector.Roll.
+    public int PistolChance { get; set; } = 15;
+    public int HalfBuyChance { get; set; } = 25;
+    public int FullBuyChance { get; set; } = 60;
+}
+
+/// <summary>
+/// Half-buy loadout: a random primary from the team's list, plus the player's saved pistol.
+/// Items are weapon_* class names.
+/// </summary>
+public class HalfBuyConfig
+{
+    public List<string> WeaponsT { get; set; } =
+        ["weapon_mac10", "weapon_mp7", "weapon_ump45", "weapon_sawedoff"];
+
+    public List<string> WeaponsCt { get; set; } =
+        ["weapon_mp9", "weapon_mp7", "weapon_ump45", "weapon_mag7"];
+
+    public bool GiveArmor { get; set; } = true;
+    public bool GiveHelmet { get; set; } = false;
+    public bool GiveNades { get; set; } = true;
 }
 
 public class NadesConfig

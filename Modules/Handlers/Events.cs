@@ -1,5 +1,7 @@
 using CounterStrikeSharp.API.Core;
 using Microsoft.Extensions.Logging;
+using RetakesAllocator.Modules.Models;
+using RetakesAllocator.Modules.Weapons;
 
 using static RetakesAllocator.Modules.Core;
 using static RetakesAllocator.Modules.Utils;
@@ -34,6 +36,23 @@ internal static class Events
         // and never refills; SetupPlayers is what decides who carries the AWP.
         SetupPlayers(Players);
         ResetNades();
+
+        // Decide this round's loadout type once, for everyone. Warmup keeps whatever was last set;
+        // Timer_GiveWeapons ignores it there and hands out the normal loadout.
+        if (!warmup)
+        {
+            CurrentRoundType = RoundTypeSelector.Select(RoundsCounter, CurrentVote != null!, Core.Config, Random.Shared);
+
+            // SetupPlayers already rolled the AWP. Pistol and half-buy rounds never give one, and
+            // leaving the flag set would also block the loadout menu's live pistol swap.
+            if (CurrentRoundType is RoundType.Pistol or RoundType.HalfBuy)
+            {
+                foreach (var player in Players)
+                {
+                    player.WeaponsAllocator.ShouldGiveAwp = false;
+                }
+            }
+        }
 
         // The vote belongs to the match, not to warmup.
         if(!warmup && CurrentVote != null && CurrentVote.Vote.OnlyHeadshots)

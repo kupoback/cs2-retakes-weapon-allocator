@@ -239,6 +239,47 @@ config file above:
 
 Changes are applied on hot reload or via `css_weapons_reload`.
 
+## Round types (custom build)
+
+[#round-types](#round-types)
+
+After the opening pistol rounds (`PistolRound.RoundAmount`), each round is rolled as a
+pistol, half-buy or full-buy round. A running vote still takes priority over the roll.
+The round type is shown in the existing "Retake ..." bombsite announcement.
+
+```
+"PistolRound": {
+  "RoundAmount": 2,
+  "WeaponT": "weapon_glock",
+  "WeaponCt": "weapon_usp_silencer",
+  "GiveArmor": false,
+  "GiveHelmet": false,
+  "GiveNades": false
+},
+"RoundTypes": {
+  "Enabled": true,
+  "PistolChance": 15,
+  "HalfBuyChance": 25,
+  "FullBuyChance": 60
+},
+"HalfBuy": {
+  "WeaponsT": [ "weapon_mac10", "weapon_mp7", "weapon_ump45", "weapon_sawedoff" ],
+  "WeaponsCt": [ "weapon_mp9", "weapon_mp7", "weapon_ump45", "weapon_mag7" ],
+  "GiveArmor": true,
+  "GiveHelmet": false,
+  "GiveNades": true
+}
+```
+
+- `RoundTypes.Enabled: false` (the default) keeps the original behaviour: every round after the
+  opening pistol rounds is a full buy.
+- The three chances are weights and do not need to add up to 100.
+- Random pistol rounds use the same `PistolRound` weapons and flags as the opening ones.
+- Half buys give a random weapon from the team's `HalfBuy` list plus the player's saved pistol.
+  No AWP is given on pistol or half-buy rounds.
+- `PistolRound.GiveArmor/GiveHelmet/GiveNades` default to the old behaviour (kevlar, no helmet,
+  no grenades).
+
 ## Setup for development
 
 Run `dotnet restore` (or `dotnet build`) in the repository root to install the

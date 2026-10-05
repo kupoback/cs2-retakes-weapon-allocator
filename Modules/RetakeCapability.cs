@@ -1,5 +1,6 @@
 using CounterStrikeSharp.API.Core.Capabilities;
 
+using RetakesAllocator.Modules.Models;
 using RetakesPluginShared;
 using RetakesPluginShared.Events;
 
@@ -53,17 +54,17 @@ public class RetakeCapability
             return;
         }
 
-        string mode = "normal mode";
+        var pistolRoundsLeft = Core.Config.PistolRound.RoundAmount - RoundsCounter;
 
-        if(CurrentVote != null!)
+        string mode = CurrentRoundType switch
         {
-            mode = CurrentVote.Vote.Description + " mode";
-        }
-
-        if(RoundsCounter < Core.Config.PistolRound.RoundAmount)
-        {
-            mode = $"pistol rounds, {Core.Config.PistolRound.RoundAmount - RoundsCounter} rounds left";
-        }
+            RoundType.Pistol when pistolRoundsLeft > 0 => $"pistol rounds, {pistolRoundsLeft} rounds left",
+            RoundType.Pistol => "pistol round",
+            RoundType.HalfBuy => "half buy round",
+            RoundType.Vote when CurrentVote != null! => CurrentVote.Vote.Description + " mode",
+            _ when Core.Config.RoundTypes.Enabled => "full buy round",
+            _ => "normal mode"
+        };
 
         PrintToChatAll($"{Prefix} Retake {mode}.");
     }

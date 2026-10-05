@@ -102,10 +102,10 @@ public static class Utils
     {
         var allocator = playerObj.WeaponsAllocator;
 
-        allocator.PrimaryWeaponT = pref.TPrimary > Allocator.PrimaryT.Count ? 0 : pref.TPrimary;
-        allocator.PrimaryWeaponCt = pref.CtPrimary > Allocator.PrimaryCt.Count ? 0 : pref.CtPrimary;
-        allocator.SecondaryWeaponT = pref.TSecondary > Allocator.PistolsT.Count ? 0 : pref.TSecondary;
-        allocator.SecondaryWeaponCt = pref.CtSecondary > Allocator.PistolsCT.Count ? 0 : pref.CtSecondary;
+        allocator.PrimaryWeaponT = pref.TPrimary >= Allocator.PrimaryT.Count ? 0 : pref.TPrimary;
+        allocator.PrimaryWeaponCt = pref.CtPrimary >= Allocator.PrimaryCt.Count ? 0 : pref.CtPrimary;
+        allocator.SecondaryWeaponT = pref.TSecondary >= Allocator.PistolsT.Count ? 0 : pref.TSecondary;
+        allocator.SecondaryWeaponCt = pref.CtSecondary >= Allocator.PistolsCT.Count ? 0 : pref.CtSecondary;
         allocator.GiveAwp = (GiveAwp)pref.GiveAwp;
     }
 

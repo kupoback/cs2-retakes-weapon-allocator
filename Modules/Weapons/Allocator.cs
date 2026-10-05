@@ -312,6 +312,37 @@ public class Allocator(Player player)
         }
     }
 
+    /// <summary>
+    /// Half-buy loadout: a random SMG/shotgun from the team's HalfBuy list, the player's saved
+    /// pistol, and a knife. Never an AWP - the round-start roll is cleared for half buys.
+    /// Armour and grenades are handed out by the caller according to the HalfBuy config.
+    /// </summary>
+    public void AllocateHalfBuy()
+    {
+        if (!CanAllocate())
+        {
+            return;
+        }
+
+        var isT = CCsPlayerController.Team == CsTeam.Terrorist;
+        var pool = isT ? Core.Config.HalfBuy.WeaponsT : Core.Config.HalfBuy.WeaponsCt;
+
+        if (pool.Count > 0)
+        {
+            CCsPlayerController.GiveNamedItem(Utils.GetRandomFromList(pool));
+        }
+
+        var secondary = isT ? PistolsT[SecondaryWeaponT].Item : PistolsCT[SecondaryWeaponCt].Item;
+
+        CCsPlayerController.GiveNamedItem(secondary);
+        CCsPlayerController.GiveNamedItem(CsItem.Knife);
+
+        if (CCsPlayerController.Team == CsTeam.CounterTerrorist)
+        {
+           GiveCtEquipment();
+        }
+    }
+
     public void AllocateVote(Vote vote)
     {
          if (!player.Controller.IsValid)
