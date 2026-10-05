@@ -133,7 +133,8 @@ changed.
 
 ### Example config
 
-This is the full default config, generated on first load:
+This is the default config, except that round types are turned on with example values
+(the real defaults are listed under [Round types](#round-types-custom-build)):
 
 ```json
 {
@@ -148,13 +149,29 @@ This is the full default config, generated on first load:
     "SqlitePath": "weapons.db"
   },
   "Prefix": {
-    "Prefix": " [Retakes]",
+    "Prefix": " [\u0004Retakes\u0001]",
     "PrefixCon": "[RetakesAllocator]"
   },
   "PistolRound": {
     "RoundAmount": 2,
     "WeaponT": "weapon_glock",
-    "WeaponCt": "weapon_usp_silencer"
+    "WeaponCt": "weapon_usp_silencer",
+    "GiveArmor": true,
+    "GiveHelmet": false,
+    "GiveNades": false
+  },
+  "RoundTypes": {
+    "Enabled": true,
+    "PistolChance": 20,
+    "HalfBuyChance": 10,
+    "FullBuyChance": 70
+  },
+  "HalfBuy": {
+    "WeaponsT": ["weapon_mac10", "weapon_mp7", "weapon_ump45", "weapon_ssg08"],
+    "WeaponsCt": ["weapon_mp9", "weapon_mp7", "weapon_ump45", "weapon_mag7", "weapon_ssg08"],
+    "GiveArmor": true,
+    "GiveHelmet": false,
+    "GiveNades": true
   },
   "TriggerWords": [ "guns", "gun", "weapon", "weapons" ],
   "Weapons": {
@@ -225,6 +242,12 @@ For **MySQL**, set `"Provider": "mysql"` and fill in the connection fields; for
 Selectable weapons, grenade kits, and weapon-vote definitions all live in the single
 config file above:
 
+- **`PistolRound`** — `RoundAmount` is how many pistol rounds open each map, and
+  `WeaponT` / `WeaponCt` are the fixed pistols everyone gets on a pistol round.
+  `GiveArmor`, `GiveHelmet` and `GiveNades` control what else comes with them; see
+  [Round types](#round-types-custom-build).
+- **`RoundTypes`** and **`HalfBuy`** — random pistol, half-buy and full-buy rounds; see
+  [Round types](#round-types-custom-build).
 - **`Weapons`** — the four selectable lists (`PrimaryT`, `PrimaryCt`, `PistolsT`,
   `PistolsCt`). Each entry is an `Item` (the `weapon_*` class name) and the
   `DisplayName` shown in the in-game menu.
@@ -241,23 +264,55 @@ Changes are applied on hot reload or via `css_weapons_reload`.
 
 ## Round types (custom build)
 
-[#round-types](#round-types)
+This fork adds random round types on top of upstream. Instead of every round after the
+opening pistol rounds being a full buy, each round can be a **pistol**, **half-buy** or
+**full-buy** round. The defaults match upstream: with `RoundTypes.Enabled` left at
+`false` and the other new options untouched, the plugin behaves exactly like upstream.
 
-After the opening pistol rounds (`PistolRound.RoundAmount`), each round is rolled as a
-pistol, half-buy or full-buy round. A running vote still takes priority over the roll.
-The round type is shown in the existing "Retake ..." bombsite announcement.
+### How a round's type is chosen
 
-```
+The type is decided once per round, at round start, for every player at once. The
+first rule that applies wins:
+
+1. **Opening pistol rounds.** The first `PistolRound.RoundAmount` rounds of each map are
+   always pistol rounds. `css_skip_pistol` (requires `@css/root`) still skips them.
+2. **A running vote.** If a vote such as `vp` or `vawp` has passed, that vote decides the
+   loadout, exactly as before. Votes still can't be started during the opening pistol rounds.
+3. **The random roll.** Otherwise the round is rolled using the `RoundTypes` chances.
+
+Warmup is never affected: everyone gets their normal full loadout there.
+
+### What each round type gives
+
+| Round type | Weapons | Armour, helmet, grenades | AWP |
+| --- | --- | --- | --- |
+| Pistol | The fixed `PistolRound.WeaponT` / `WeaponCt`, plus a knife | From `PistolRound` | Never |
+| Half buy | A random weapon from the team's `HalfBuy` list, the player's saved pistol, and a knife | From `HalfBuy` | Never |
+| Full buy | The player's saved loadout, as upstream | Kevlar + helmet and grenades | As normal |
+| Vote | Whatever the vote defines | From the vote's own flags | As the vote defines |
+
+CTs also get a defuse kit on pistol and half-buy rounds.
+
+Pistol rounds use the fixed pistols, not each player's saved pistol, so everyone is on
+equal terms. Random pistol rounds use the same `PistolRound` settings as the opening ones.
+
+Half-buy weapons are picked at random per player, so two players on the same team can get
+different weapons. Half-buy grenades come from the same per-team grenade pool as full-buy
+rounds (`Nades`), which is refilled every round.
+
+### Config
+
+```json
 "PistolRound": {
   "RoundAmount": 2,
   "WeaponT": "weapon_glock",
   "WeaponCt": "weapon_usp_silencer",
-  "GiveArmor": false,
+  "GiveArmor": true,
   "GiveHelmet": false,
   "GiveNades": false
 },
 "RoundTypes": {
-  "Enabled": true,
+  "Enabled": false,
   "PistolChance": 15,
   "HalfBuyChance": 25,
   "FullBuyChance": 60
@@ -271,14 +326,61 @@ The round type is shown in the existing "Retake ..." bombsite announcement.
 }
 ```
 
-- `RoundTypes.Enabled: false` (the default) keeps the original behaviour: every round after the
-  opening pistol rounds is a full buy.
-- The three chances are weights and do not need to add up to 100.
-- Random pistol rounds use the same `PistolRound` weapons and flags as the opening ones.
-- Half buys give a random weapon from the team's `HalfBuy` list plus the player's saved pistol.
-  No AWP is given on pistol or half-buy rounds.
-- `PistolRound.GiveArmor/GiveHelmet/GiveNades` default to the old behaviour (kevlar, no helmet,
-  no grenades).
+These are the defaults. To turn round types on, set `RoundTypes.Enabled` to `true`.
+
+**`PistolRound`** (applies to the opening pistol rounds and random ones)
+
+- `GiveArmor` — give kevlar. Defaults to `true`, matching upstream. Set it to `false` for
+  pistol rounds with no armour.
+- `GiveHelmet` — give a helmet as well. Only applies when `GiveArmor` is `true`.
+- `GiveNades` — give grenades from the team's `Nades` kit.
+
+**`RoundTypes`**
+
+- `Enabled` — turn random round types on. When `false`, every round after the opening
+  pistol rounds is a full buy, as upstream.
+- `PistolChance`, `HalfBuyChance`, `FullBuyChance` — how likely each type is. These are
+  **weights**, not percentages, so they don't need to add up to 100: `1`, `1`, `2` means
+  25% pistol, 25% half buy and 50% full buy. Set a chance to `0` to never roll that type.
+  If all three are `0`, every round is a full buy.
+
+**`HalfBuy`**
+
+- `WeaponsT` / `WeaponsCt` — the weapons a half buy can give each team, as `weapon_*`
+  class names. Any weapon works, including rifles. If a list is empty, that team gets
+  only their pistol.
+- `GiveArmor`, `GiveHelmet`, `GiveNades` — the same as for `PistolRound`.
+
+### Changing loadout mid-round
+
+Saving a new loadout in the menu normally swaps a player's weapons straight away. With
+round types:
+
+- **Pistol and vote rounds:** nothing is swapped. The new loadout applies from the next
+  round it is used.
+- **Half buys:** only a pistol change is applied straight away. A new rifle choice is
+  saved for the next full-buy round.
+- **Full buys and warmup:** swaps work as upstream.
+
+### Round announcement
+
+The "Retake ..." chat message at the start of each round names the round type:
+
+- `pistol rounds, 2 rounds left` — an opening pistol round
+- `pistol round` — a random pistol round
+- `half buy round`
+- `full buy round` — shown when round types are enabled
+- `<vote description> mode` — a running vote, e.g. `pistol only mode`
+- `normal mode` — round types are disabled, as upstream
+
+### Other changes from upstream
+
+- Fixed a crash when a player's saved weapon pointed one past the end of a weapon list
+  (for example after a weapon was removed from the config). That saved choice now falls
+  back to the first weapon in the list.
+- If a vote is cancelled during a round that started as a vote round, players who spawn
+  after that get a normal full buy.
+- The plugin reports its version as `3.2.5-roundtypes`.
 
 ## Setup for development
 
