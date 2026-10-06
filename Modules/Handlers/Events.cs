@@ -7,6 +7,7 @@ using static RetakesAllocator.Modules.Core;
 using static RetakesAllocator.Modules.Utils;
 using static RetakesAllocator.Modules.Models.Player;
 using static RetakesAllocator.Modules.Weapons.Allocator;
+using static RetakesAllocator.Modules.Votes.Votes;
 
 namespace RetakesAllocator.Modules.Handlers;
 
@@ -43,6 +44,10 @@ internal static class Events
         {
             CurrentRoundType = RoundTypeSelector.Select(RoundsCounter, CurrentVote != null!, Core.Config, Random.Shared);
 
+            // Remember which vote this round is played with, so RoundsPerVote only counts rounds
+            // the vote actually ran in.
+            RoundVote = CurrentRoundType == RoundType.Vote ? CurrentVote! : null!;
+
             // SetupPlayers already rolled the AWP. Pistol and half-buy rounds never give one, and
             // leaving the flag set would also block the loadout menu's live pistol swap.
             if (CurrentRoundType is RoundType.Pistol or RoundType.HalfBuy)
@@ -73,6 +78,13 @@ internal static class Events
 
         RoundsCounter++;
         mp_damage_headshot_only.SetValue(false);
+
+        var endedVote = OnVoteRoundPlayed();
+
+        if (endedVote != null)
+        {
+            PrintToChatAll($"{Prefix} The {endedVote.Vote.Description} vote is over, back to normal rounds.");
+        }
 
         return HookResult.Continue;
     }

@@ -201,6 +201,7 @@ This is the default config, except that round types are turned on with example v
   "Votes": {
     "RequiredPercentage": 60,
     "WeaponSelectionTime": 5,
+    "RoundsPerVote": 0,
     "Votes": [
       {
         "Command": "vp",
@@ -258,7 +259,11 @@ config file above:
   `GiveWeapons`, `GiveNades`, `GiveKnife`, `GiveArmor`, `GiveHelmet`. Admins can
   force a vote with `css_force<Command>` (requires `@css/root`). `RequiredPercentage`
   is the share of players needed to pass a vote and `WeaponSelectionTime` is the
-  per-weapon menu countdown in seconds.
+  per-weapon menu countdown in seconds. `RoundsPerVote` (custom build) is how many rounds
+  a passed vote lasts before play goes back to normal: `1` makes a vote apply to the next
+  round only, and `0` (the default, as upstream) keeps it on until it is voted off again.
+  Admins can end a running vote and clear all pending votes with `css_resetvotes`
+  (requires `@css/root`); normal rounds resume from the next round.
 
 Changes are applied on hot reload or via `css_weapons_reload`.
 

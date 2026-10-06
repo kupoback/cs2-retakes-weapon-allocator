@@ -69,6 +69,13 @@ public class VotesSection
     [JsonPropertyName("WeaponSelectionTime")]
     public int WeaponSelectionTime { get; set; } = VotesClass.WeaponSelectionTime;
 
+    /// <summary>
+    /// How many rounds a passed vote lasts before play goes back to normal. 0 (the default, as
+    /// upstream) keeps it running until it is voted off again or an admin runs css_resetvotes.
+    /// </summary>
+    [JsonPropertyName("RoundsPerVote")]
+    public int RoundsPerVote { get; set; } = 0;
+
     [JsonPropertyName("Votes")]
     public List<Vote> Votes { get; set; } = [..VotesClass.WeaponVotes];
 }

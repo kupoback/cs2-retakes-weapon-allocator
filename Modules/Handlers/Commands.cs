@@ -24,6 +24,7 @@ internal static class Commands
 
         Plugin.AddCommand("css_weapons_reload", "Reloads the weapons allocator's weapons configs", ReloadCommand);
         Plugin.AddCommand("css_skip_pistol", "Skips the pistol round", SkipPistolRoundCommand);
+        Plugin.AddCommand("css_resetvotes", "Ends the running vote and clears pending votes", ResetVotesCommand);
     }
 
     public static void UnRegisterCommands()
@@ -34,6 +35,7 @@ internal static class Commands
         }
 
         Plugin.RemoveCommand("css_weapons_reload", ReloadCommand);
+        Plugin.RemoveCommand("css_resetvotes", ResetVotesCommand);
     }
 
     /// <summary>
@@ -159,6 +161,22 @@ internal static class Commands
 
         PrintToChatAll($"{Prefix} ADMIN: Forced {voteManager.Vote.Description} rounds.");
         Votes_OnVoteReached(voteManager);
+    }
+
+    /// <summary>
+    /// Puts votes back to normal: ends the running vote (from the next round, like a voted cancel)
+    /// and clears everyone's pending votes. Works from the server console too.
+    /// </summary>
+    [RequiresPermissions(new string[] { "@css/root" })]
+    private static void ResetVotesCommand(CCSPlayerController? player, CommandInfo commandInfo)
+    {
+        if (!ResetVotes())
+        {
+            ReplyToCommand(commandInfo, $"{Prefix} There is no vote to reset.");
+            return;
+        }
+
+        PrintToChatAll($"{Prefix} ADMIN: Votes reset, normal rounds from next round.");
     }
 
     [RequiresPermissions(new string[] { "@css/root" })]

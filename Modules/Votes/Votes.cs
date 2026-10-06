@@ -27,6 +27,15 @@ public class Votes
     public static int RequiredPercentage = 60;
     public static int WeaponSelectionTime = 5;
 
+    /// <summary>Vote rounds the current vote has left. 0 means no limit (runs until cancelled).</summary>
+    public static int VoteRoundsLeft = 0;
+
+    /// <summary>
+    /// The vote that was running when the current round started. A vote passed mid-round is not
+    /// charged for the round it passed in, because that round wasn't played with it.
+    /// </summary>
+    public static AsyncVoteManager RoundVote = null!;
+
     public static AsyncVoteManager GetVote(string command)
     {
         return VoteManagers.Count == 0 ? null! : VoteManagers.FirstOrDefault(x => command.Replace("css_", "").Replace("force", "") == x.Vote.Command)!;
@@ -72,11 +81,55 @@ public class Votes
     public static void Votes_OnMapStart()
     {
         CurrentVote = null!;
+        RoundVote = null!;
+        VoteRoundsLeft = 0;
 
         foreach (var voteManager in VoteManagers)
         {
             voteManager.OnMapStart();
         }
+    }
+
+    /// <summary>
+    /// Ends the running vote and throws away every pending vote, so the next round is a normal one.
+    /// Returns false when there was nothing to reset.
+    /// </summary>
+    public static bool ResetVotes()
+    {
+        var hadAnything = CurrentVote != null! || VoteManagers.Any(x => x.VoteCount > 0);
+
+        CurrentVote = null!;
+        VoteRoundsLeft = 0;
+
+        foreach (var voteManager in VoteManagers)
+        {
+            voteManager.ClearVotes();
+        }
+
+        return hadAnything;
+    }
+
+    /// <summary>
+    /// Called when a live round ends. Counts the round against a limited vote (RoundsPerVote) and
+    /// ends that vote once it has used them all. Returns the vote that just ended, or null.
+    /// </summary>
+    public static AsyncVoteManager? OnVoteRoundPlayed()
+    {
+        if (CurrentVote == null! || RoundVote != CurrentVote || VoteRoundsLeft <= 0)
+        {
+            return null;
+        }
+
+        VoteRoundsLeft--;
+
+        if (VoteRoundsLeft > 0)
+        {
+            return null;
+        }
+
+        var ended = CurrentVote;
+        CurrentVote = null!;
+        return ended;
     }
 
     public static void Votes_OnPluginUnload()
@@ -93,13 +146,21 @@ public class Votes
         if(CurrentVote != null! && voteManager.IsRunningVote())
         {
             CurrentVote = null!;
+            VoteRoundsLeft = 0;
 
             PrintToChatAll($"{Prefix} {description} rounds will be canceled next round.");
             return;
         }
 
         CurrentVote = voteManager;
-        PrintToChatAll($"{Prefix} {description} rounds will start next round!");
+        VoteRoundsLeft = Math.Max(0, Core.Config.Votes.RoundsPerVote);
+
+        PrintToChatAll(VoteRoundsLeft switch
+        {
+            0 => $"{Prefix} {description} rounds will start next round!",
+            1 => $"{Prefix} Next round is a {voteManager.Vote.Description} round!",
+            _ => $"{Prefix} {description} rounds for the next {VoteRoundsLeft} rounds!"
+        });
     }
 
     public static void Votes_OnPlayerDisconnect(CCSPlayerController player)
