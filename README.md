@@ -249,6 +249,12 @@ config file above:
   [Round types](#round-types-custom-build).
 - **`RoundTypes`** and **`HalfBuy`** — random pistol, half-buy and full-buy rounds; see
   [Round types](#round-types-custom-build).
+- **`Awp`** (custom build) — on a full-buy round at most one player per team gets the
+  AWP, picked at random from those whose *Sometimes* (50%) or *Always* setting came up;
+  everyone else gets their saved rifle. `MinTeamSize` is how many players a team needs
+  before it gets an AWP at all (e.g. `3`: a team of 2 or fewer only gets rifles). `0`,
+  the default, means no minimum. A player moved to the other team after the roll loses
+  the AWP for that round, so a team never ends up with two.
 - **`Weapons`** — the four selectable lists (`PrimaryT`, `PrimaryCt`, `PistolsT`,
   `PistolsCt`). Each entry is an `Item` (the `weapon_*` class name) and the
   `DisplayName` shown in the in-game menu.

@@ -58,6 +58,15 @@ public class Allocator(Player player)
     public GiveAwp GiveAwp = GiveAwp.Never;
     public bool ShouldGiveAwp = false;
 
+    /// <summary>
+    /// The team the player was on when the AWP was rolled. If the retakes plugin moves them to the
+    /// other side after that, they lose the AWP for the round, otherwise the team they join could
+    /// end up with two.
+    /// </summary>
+    public CsTeam AwpTeam = CsTeam.None;
+
+    private bool GetsAwp => ShouldGiveAwp && CCsPlayerController.Team == AwpTeam;
+
     public static void ResetNades()
     {
         _ctNades = new Nades(Core.NadesConfig.CtNades);
@@ -187,7 +196,7 @@ public class Allocator(Player player)
     /// </remarks>
     public void ReplacePrimary()
     {
-        if (!CanAllocate() || ShouldGiveAwp)
+        if (!CanAllocate() || GetsAwp)
         {
             return;
         }
@@ -203,7 +212,7 @@ public class Allocator(Player player)
     /// <summary>As <see cref="ReplacePrimary"/>, for the pistol slot.</summary>
     public void ReplaceSecondary()
     {
-        if (!CanAllocate() || ShouldGiveAwp)
+        if (!CanAllocate() || GetsAwp)
         {
             return;
         }
@@ -254,7 +263,7 @@ public class Allocator(Player player)
         }
 
         string primary;
-        if (ShouldGiveAwp)
+        if (GetsAwp)
         {
             primary = "weapon_awp";
         }
@@ -265,7 +274,7 @@ public class Allocator(Player player)
 
         string secondary;
 
-        if (ShouldGiveAwp)
+        if (GetsAwp)
         {
             secondary = "weapon_deagle";
         }

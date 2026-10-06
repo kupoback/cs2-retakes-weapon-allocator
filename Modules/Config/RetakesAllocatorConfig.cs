@@ -29,6 +29,9 @@ public class RetakesAllocatorConfig : BasePluginConfig
     [JsonPropertyName("HalfBuy")]
     public HalfBuyConfig HalfBuy { get; set; } = new();
 
+    [JsonPropertyName("Awp")]
+    public AwpConfig Awp { get; set; } = new();
+
     [JsonPropertyName("TriggerWords")]
     public string[] TriggerWords { get; set; } = { "guns", "gun", "weapon", "weapons" };
 
@@ -173,6 +176,19 @@ public class HalfBuyConfig
     public bool GiveArmor { get; set; } = true;
     public bool GiveHelmet { get; set; } = false;
     public bool GiveNades { get; set; } = true;
+}
+
+/// <summary>
+/// AWP roll on full-buy rounds. At most one player per team gets the AWP, picked at random from
+/// those whose Sometimes/Always setting came up; everyone else gets their saved rifle.
+/// </summary>
+public class AwpConfig
+{
+    /// <summary>
+    /// A team needs at least this many players before anyone on it can get the AWP. 0 (the
+    /// default, as upstream) means no minimum.
+    /// </summary>
+    public int MinTeamSize { get; set; } = 0;
 }
 
 public class NadesConfig

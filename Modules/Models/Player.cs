@@ -37,37 +37,47 @@ public class Player
 
         List<Player> playersT = new();
         List<Player> playersCt = new();
+        var teamSizeT = 0;
+        var teamSizeCt = 0;
 
         foreach(var player in players)
         {
             var team = player.GetTeam();
-            var giveAwp = player.WeaponsAllocator.SetupGiveAwp();
 
             player.WeaponsAllocator.ShouldGiveAwp = false;
+            player.WeaponsAllocator.AwpTeam = team;
 
-            if (giveAwp)
+            if (team == CsTeam.Terrorist)
             {
-                if (team == CsTeam.Terrorist )
-                {
-                    playersT.Add(player);
-                }
+                teamSizeT++;
+            }
+            else if (team == CsTeam.CounterTerrorist)
+            {
+                teamSizeCt++;
+            }
+            else
+            {
+                continue;
+            }
 
-                if (team == CsTeam.CounterTerrorist)
-                {
-                    playersCt.Add(player);
-                }
+            if (player.WeaponsAllocator.SetupGiveAwp())
+            {
+                (team == CsTeam.Terrorist ? playersT : playersCt).Add(player);
             }
         }
 
-        if(0 < playersT.Count)
+        // One AWP per team at most, and none on a team below Awp.MinTeamSize.
+        var awpConfig = Core.Config.Awp;
+
+        var playerT = AwpSelector.Pick(playersT, teamSizeT, awpConfig, Random.Shared);
+        if (playerT != null)
         {
-            Player playerT = Utils.GetRandomFromList(playersT);
             playerT.WeaponsAllocator.ShouldGiveAwp = true;
         }
 
-        if(0 < playersCt.Count)
+        var playerCt = AwpSelector.Pick(playersCt, teamSizeCt, awpConfig, Random.Shared);
+        if (playerCt != null)
         {
-            Player playerCt = Utils.GetRandomFromList(playersCt);
             playerCt.WeaponsAllocator.ShouldGiveAwp = true;
         }
     }
