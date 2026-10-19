@@ -32,6 +32,9 @@ public class RetakesAllocatorConfig : BasePluginConfig
     [JsonPropertyName("Awp")]
     public AwpConfig Awp { get; set; } = new();
 
+    [JsonPropertyName("Taser")]
+    public TaserConfig Taser { get; set; } = new();
+
     [JsonPropertyName("TriggerWords")]
     public string[] TriggerWords { get; set; } = { "guns", "gun", "weapon", "weapons" };
 
@@ -189,6 +192,15 @@ public class AwpConfig
     /// default, as upstream) means no minimum.
     /// </summary>
     public int MinTeamSize { get; set; } = 0;
+}
+
+/// <summary>
+/// Gives every player a Zeus on every round except pistol rounds (warmup included). Off by default,
+/// as upstream.
+/// </summary>
+public class TaserConfig
+{
+    public bool Enabled { get; set; } = false;
 }
 
 public class NadesConfig

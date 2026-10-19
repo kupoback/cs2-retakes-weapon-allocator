@@ -31,6 +31,9 @@ public class ConfigModelTests
         Assert.Equal(60, config.Votes.RequiredPercentage);
         Assert.Equal(5, config.Votes.WeaponSelectionTime);
         Assert.Equal(5, config.Votes.Votes.Count);
+
+        // Taser off by default, as upstream.
+        Assert.False(config.Taser.Enabled);
     }
 
     [Fact]
@@ -53,7 +56,7 @@ public class ConfigModelTests
         foreach (var section in new[]
         {
             "\"ConfigVersion\"", "\"DbConnection\"", "\"Prefix\"", "\"PistolRound\"",
-            "\"TriggerWords\"",
+            "\"Taser\"", "\"TriggerWords\"",
             "\"Weapons\"", "\"Nades\"", "\"Votes\"",
         })
         {

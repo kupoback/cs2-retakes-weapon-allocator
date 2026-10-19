@@ -179,6 +179,8 @@ public class Allocator(Player player)
         CCsPlayerController.RemoveItemBySlot(gear_slot_t.GEAR_SLOT_PISTOL);
         CCsPlayerController.RemoveItemBySlot(gear_slot_t.GEAR_SLOT_GRENADES);
         CCsPlayerController.RemoveItemBySlot(gear_slot_t.GEAR_SLOT_KNIFE);
+        // The taser shares the knife slot, and removing by slot only takes one item.
+        CCsPlayerController.RemoveItemByDesignerName("weapon_taser", true);
     }
 
     private bool CanAllocate() =>
@@ -223,6 +225,16 @@ public class Allocator(Player player)
 
         CCsPlayerController.RemoveItemBySlot(gear_slot_t.GEAR_SLOT_PISTOL);
         CCsPlayerController.GiveNamedItem(item);
+    }
+
+    public void AllocateTaser()
+    {
+        if (!CanAllocate())
+        {
+            return;
+        }
+
+        CCsPlayerController.GiveNamedItem(CsItem.Taser);
     }
 
     public void AllocateArmor(bool giveFull = true)

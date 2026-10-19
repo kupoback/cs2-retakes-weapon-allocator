@@ -205,6 +205,17 @@ public class Player
         // `is { }` keeps this safe if the game rules entity cannot be resolved.
         var warmup = GetGameRules() is { WarmupPeriod: true };
 
+        GiveLoadout(warmup);
+
+        // Every round type except pistol rounds, so it lives here rather than in each branch.
+        if (Core.Config.Taser.Enabled && (warmup || CurrentRoundType != RoundType.Pistol))
+        {
+            WeaponsAllocator.AllocateTaser();
+        }
+    }
+
+    private void GiveLoadout(bool warmup)
+    {
         if (warmup)
         {
             WeaponsAllocator.Allocate();

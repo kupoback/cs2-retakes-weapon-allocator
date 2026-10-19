@@ -173,6 +173,9 @@ This is the default config, except that round types are turned on with example v
     "GiveHelmet": false,
     "GiveNades": true
   },
+  "Taser": {
+    "Enabled": true
+  },
   "TriggerWords": [ "guns", "gun", "weapon", "weapons" ],
   "Weapons": {
     "PrimaryT": [
@@ -255,6 +258,10 @@ config file above:
   before it gets an AWP at all (e.g. `3`: a team of 2 or fewer only gets rifles). `0`,
   the default, means no minimum. A player moved to the other team after the roll loses
   the AWP for that round, so a team never ends up with two.
+- **`Taser`** (custom build) — with `Enabled` set to `true`, every player gets a Zeus on
+  every round except pistol rounds (warmup, full buys, half buys and vote rounds).
+  Defaults to `false`, as upstream. The server needs `mp_weapons_allow_zeus` on (the
+  game's default).
 - **`Weapons`** — the four selectable lists (`PrimaryT`, `PrimaryCt`, `PistolsT`,
   `PistolsCt`). Each entry is an `Item` (the `weapon_*` class name) and the
   `DisplayName` shown in the in-game menu.
@@ -302,7 +309,8 @@ Warmup is never affected: everyone gets their normal full loadout there.
 | Full buy | The player's saved loadout, as upstream | Kevlar + helmet and grenades | As normal |
 | Vote | Whatever the vote defines | From the vote's own flags | As the vote defines |
 
-CTs also get a defuse kit on pistol and half-buy rounds.
+CTs also get a defuse kit on pistol and half-buy rounds. With `Taser.Enabled` on, every
+round type except pistol rounds also gives a Zeus.
 
 Pistol rounds use the fixed pistols, not each player's saved pistol, so everyone is on
 equal terms. Random pistol rounds use the same `PistolRound` settings as the opening ones.
