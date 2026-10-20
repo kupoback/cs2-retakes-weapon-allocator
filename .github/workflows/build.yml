@@ -66,14 +66,33 @@ jobs:
           body: |
             ## RetakesAllocator ${{ github.ref_name }}
 
-            Weapons allocator plugin for CS2 retakes, written in C# (.NET 8) for
-            CounterStrikeSharp. Designed to run alongside
-            [b3none's cs2-retakes](https://github.com/b3none/cs2-retakes).
+            A fork of [Ravid-A/cs2-retakes-weapon-allocator](https://github.com/Ravid-A/cs2-retakes-weapon-allocator)
+            (based on upstream 3.2.6), the weapons allocator for
+            [B3none's cs2-retakes](https://github.com/b3none/cs2-retakes), written in C# (.NET 10)
+            for CounterStrikeSharp. With the new options left at their defaults it behaves
+            exactly like upstream.
+
+            ### Added in this fork
+            - **Round types**: each round after the opening pistol rounds is rolled as a pistol,
+              half-buy or full-buy round, using weights you set (`RoundTypes`, `HalfBuy`).
+            - **Special rounds**: your own fixed-weapon rounds, e.g. deagle only or scouts only,
+              each with its own chance, armour, grenades and taser (`RoundTypes.SpecialRounds`).
+            - **Pistol round options**: armour, helmet and grenades on pistol rounds are now
+              configurable (`PistolRound`).
+            - **Taser**: every player gets a Zeus on every round except pistol rounds (`Taser`).
+            - **AWP minimum team size**: no AWP for a team below a set size (`Awp.MinTeamSize`).
+            - **Vote duration**: a passed vote can end after a set number of rounds
+              (`Votes.RoundsPerVote`), and admins can end one with `css_resetvotes`.
+            - The round announcement names the round type, e.g. "Retake deagle only round."
+            - Fixed a crash when a saved weapon pointed past the end of a weapon list.
 
             ### Requirements
-            - **CounterStrikeSharp** v1.0.360 or newer (Minimum API version **360**) with Metamod:Source
-            - **[b3none/cs2-retakes](https://github.com/b3none/cs2-retakes)** installed and running
-            - A database — **MySQL/MariaDB** *or* **SQLite** (a local file, no server required)
+            - **CounterStrikeSharp** on .NET 10 (API **1.0.374** or newer) with Metamod:Source
+            - **[MultiAddonManager](https://github.com/Source2ZE/MultiAddonManager)** and the
+              [Retakes Allocator - HUD](https://steamcommunity.com/sharedfiles/filedetails/?id=3792297574)
+              workshop addon (`3792297574`) for the loadout menu
+            - **[B3none/cs2-retakes](https://github.com/b3none/cs2-retakes)** installed and running
+            - A database: **MySQL/MariaDB** or **SQLite** (a local file, no server required)
 
             ### Installation
             1. Download `RetakesAllocator-${{ github.ref_name }}.zip` from the assets below.
@@ -85,13 +104,16 @@ jobs:
             4. Fill in the `DbConnection` section (MySQL credentials, or set
                `"Provider": "sqlite"`), then reload the plugin.
 
+            Already running an earlier build of this fork? Only `RetakesAllocator.dll` needs
+            replacing, and an existing config keeps working. Add any new sections you want to
+            use by hand.
+
             ### Configuration
-            All settings — database, chat prefix, pistol round, selectable weapons, grenade
-            kits, and weapon votes — live in the single CounterStrikeSharp-managed config
-            file above. See the
-            [README](https://github.com/Ravid-A/CS2_Retakes_WeaponsAllocator/blob/main/README.md)
-            for the full schema and examples. Edits are applied live via CounterStrikeSharp's
-            config hot reload, or on demand with `css_weapons_reload` (requires `@css/root`).
+            Everything lives in the single CounterStrikeSharp-managed config file above. See the
+            [README](https://github.com/kupoback/cs2-retakes-weapon-allocator/blob/${{ github.ref_name }}/README.md)
+            for every option and a full example config. Edits are applied live via
+            CounterStrikeSharp's config hot reload, or on demand with `css_weapons_reload`
+            (requires `@css/root`).
 
             ---
 
