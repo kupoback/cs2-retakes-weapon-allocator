@@ -133,8 +133,10 @@ changed.
 
 ### Example config
 
-This is the default config, except that round types are turned on with example values
-(the real defaults are listed under [Round types](#round-types-custom-build)):
+This is the default config, except that the custom-build options are turned on with
+example values: round types with a deagle-only and a scouts-only special round, an AWP
+minimum team size, the taser, and one-round votes. The real defaults are listed under
+[Round types](#round-types-custom-build) and [Weapons, Nades & Votes](#weapons-nades--votes).
 
 ```json
 {
@@ -162,9 +164,31 @@ This is the default config, except that round types are turned on with example v
   },
   "RoundTypes": {
     "Enabled": true,
-    "PistolChance": 20,
+    "PistolChance": 10,
     "HalfBuyChance": 10,
-    "FullBuyChance": 70
+    "FullBuyChance": 70,
+    "SpecialRounds": [
+      {
+        "Name": "deagle only",
+        "Chance": 5,
+        "WeaponsT": [ "weapon_deagle" ],
+        "WeaponsCt": [ "weapon_deagle" ],
+        "GiveArmor": true,
+        "GiveHelmet": true,
+        "GiveNades": true,
+        "GiveTaser": true
+      },
+      {
+        "Name": "scouts only",
+        "Chance": 5,
+        "WeaponsT": [ "weapon_ssg08" ],
+        "WeaponsCt": [ "weapon_ssg08" ],
+        "GiveArmor": true,
+        "GiveHelmet": true,
+        "GiveNades": false,
+        "GiveTaser": true
+      }
+    ]
   },
   "HalfBuy": {
     "WeaponsT": ["weapon_mac10", "weapon_mp7", "weapon_ump45", "weapon_ssg08"],
@@ -172,6 +196,9 @@ This is the default config, except that round types are turned on with example v
     "GiveArmor": true,
     "GiveHelmet": false,
     "GiveNades": true
+  },
+  "Awp": {
+    "MinTeamSize": 3
   },
   "Taser": {
     "Enabled": true
@@ -204,7 +231,7 @@ This is the default config, except that round types are turned on with example v
   "Votes": {
     "RequiredPercentage": 60,
     "WeaponSelectionTime": 5,
-    "RoundsPerVote": 0,
+    "RoundsPerVote": 1,
     "Votes": [
       {
         "Command": "vp",
@@ -250,8 +277,8 @@ config file above:
   `WeaponT` / `WeaponCt` are the fixed pistols everyone gets on a pistol round.
   `GiveArmor`, `GiveHelmet` and `GiveNades` control what else comes with them; see
   [Round types](#round-types-custom-build).
-- **`RoundTypes`** and **`HalfBuy`** — random pistol, half-buy and full-buy rounds; see
-  [Round types](#round-types-custom-build).
+- **`RoundTypes`** and **`HalfBuy`** (custom build) — random pistol, half-buy, full-buy
+  and special rounds (e.g. deagle only); see [Round types](#round-types-custom-build).
 - **`Awp`** (custom build) — on a full-buy round at most one player per team gets the
   AWP, picked at random from those whose *Sometimes* (50%) or *Always* setting came up;
   everyone else gets their saved rifle. `MinTeamSize` is how many players a team needs
@@ -260,8 +287,8 @@ config file above:
   the AWP for that round, so a team never ends up with two.
 - **`Taser`** (custom build) — with `Enabled` set to `true`, every player gets a Zeus on
   every round except pistol rounds (warmup, full buys, half buys and vote rounds).
-  Defaults to `false`, as upstream. The server needs `mp_weapons_allow_zeus` on (the
-  game's default).
+  Special rounds ignore it and use their own `GiveTaser`. Defaults to `false`, as
+  upstream. The server needs `mp_weapons_allow_zeus` on (the game's default).
 - **`Weapons`** — the four selectable lists (`PrimaryT`, `PrimaryCt`, `PistolsT`,
   `PistolsCt`). Each entry is an `Item` (the `weapon_*` class name) and the
   `DisplayName` shown in the in-game menu.
@@ -284,8 +311,9 @@ Changes are applied on hot reload or via `css_weapons_reload`.
 
 This fork adds random round types on top of upstream. Instead of every round after the
 opening pistol rounds being a full buy, each round can be a **pistol**, **half-buy** or
-**full-buy** round, or one of your own **special rounds** such as deagle only or scouts only. The defaults match upstream: with `RoundTypes.Enabled` left at
-`false` and the other new options untouched, the plugin behaves exactly like upstream.
+**full-buy** round, or one of your own **special rounds** such as deagle only or scouts
+only. The defaults match upstream: with `RoundTypes.Enabled` left at `false` and the other
+new options untouched, the plugin behaves exactly like upstream.
 
 ### How a round's type is chosen
 
@@ -415,8 +443,8 @@ These are the defaults. To turn round types on, set `RoundTypes.Enabled` to `tru
 Saving a new loadout in the menu normally swaps a player's weapons straight away. With
 round types:
 
-- **Pistol, special and vote rounds:** nothing is swapped. The new loadout applies from the next
-  round it is used.
+- **Pistol, special and vote rounds:** nothing is swapped. The new loadout applies from
+  the next round it is used.
 - **Half buys:** only a pistol change is applied straight away. A new rifle choice is
   saved for the next full-buy round.
 - **Full buys and warmup:** swaps work as upstream.
@@ -440,7 +468,7 @@ The "Retake ..." chat message at the start of each round names the round type:
   back to the first weapon in the list.
 - If a vote is cancelled during a round that started as a vote round, players who spawn
   after that get a normal full buy.
-- The plugin reports its version as `3.2.5-roundtypes`.
+- The plugin reports its version as `3.2.6-roundtypes.1` (based on upstream 3.2.6).
 
 ## Setup for development
 
