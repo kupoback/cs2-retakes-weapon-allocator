@@ -42,15 +42,16 @@ internal static class Events
         // Timer_GiveWeapons ignores it there and hands out the normal loadout.
         if (!warmup)
         {
-            CurrentRoundType = RoundTypeSelector.Select(RoundsCounter, CurrentVote != null!, Core.Config, Random.Shared);
+            CurrentRoundType = RoundTypeSelector.Select(RoundsCounter, CurrentVote != null!, Core.Config, Random.Shared,
+                out CurrentSpecialRound);
 
             // Remember which vote this round is played with, so RoundsPerVote only counts rounds
             // the vote actually ran in.
             RoundVote = CurrentRoundType == RoundType.Vote ? CurrentVote! : null!;
 
-            // SetupPlayers already rolled the AWP. Pistol and half-buy rounds never give one, and
-            // leaving the flag set would also block the loadout menu's live pistol swap.
-            if (CurrentRoundType is RoundType.Pistol or RoundType.HalfBuy)
+            // SetupPlayers already rolled the AWP. Pistol, half-buy and special rounds never give one,
+            // and leaving the flag set would also block the loadout menu's live pistol swap.
+            if (CurrentRoundType is RoundType.Pistol or RoundType.HalfBuy or RoundType.Special)
             {
                 foreach (var player in Players)
                 {

@@ -7,6 +7,9 @@ public enum RoundType
     HalfBuy,
     FullBuy,
 
+    /// <summary>One of the RoundTypes.SpecialRounds entries, e.g. deagle only; see Core.CurrentSpecialRound.</summary>
+    Special,
+
     /// <summary>A passed vote is running; its own flags decide the loadout.</summary>
     Vote
 }

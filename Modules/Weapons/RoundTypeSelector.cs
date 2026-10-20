@@ -13,8 +13,16 @@ public static class RoundTypeSelector
     /// vote, then the weighted roll from RoundTypes. With RoundTypes disabled every remaining round is
     /// a full buy, which is exactly how the plugin behaved before round types existed.
     /// </summary>
-    public static RoundType Select(int roundsPlayed, bool voteActive, RetakesAllocatorConfig config, Random rng)
+    public static RoundType Select(int roundsPlayed, bool voteActive, RetakesAllocatorConfig config, Random rng) =>
+        Select(roundsPlayed, voteActive, config, rng, out _);
+
+    /// <inheritdoc cref="Select(int, bool, RetakesAllocatorConfig, Random)"/>
+    /// <param name="special">The special round that was rolled, when the result is <see cref="RoundType.Special"/>.</param>
+    public static RoundType Select(int roundsPlayed, bool voteActive, RetakesAllocatorConfig config, Random rng,
+        out SpecialRoundConfig? special)
     {
+        special = null;
+
         if (roundsPlayed < config.PistolRound.RoundAmount)
         {
             return RoundType.Pistol;
@@ -25,16 +33,22 @@ public static class RoundTypeSelector
             return RoundType.Vote;
         }
 
-        return Roll(config.RoundTypes, rng);
+        return Roll(config.RoundTypes, rng, out special);
     }
 
     /// <summary>
-    /// Weighted roll. The three chances are weights, so they do not have to add up to 100:
-    /// 1/1/2 means 25% pistol, 25% half buy, 50% full buy. Negative values count as 0, and if
-    /// everything is 0 the round falls back to a full buy.
+    /// Weighted roll. The chances, special rounds included, are weights, so they do not have to add
+    /// up to 100: 1/1/2 means 25% pistol, 25% half buy, 50% full buy. Negative values count as 0,
+    /// and if everything is 0 the round falls back to a full buy.
     /// </summary>
-    public static RoundType Roll(RoundTypesConfig config, Random rng)
+    public static RoundType Roll(RoundTypesConfig config, Random rng) => Roll(config, rng, out _);
+
+    /// <inheritdoc cref="Roll(RoundTypesConfig, Random)"/>
+    /// <param name="special">The special round that was rolled, when the result is <see cref="RoundType.Special"/>.</param>
+    public static RoundType Roll(RoundTypesConfig config, Random rng, out SpecialRoundConfig? special)
     {
+        special = null;
+
         if (!config.Enabled)
         {
             return RoundType.FullBuy;
@@ -43,7 +57,8 @@ public static class RoundTypeSelector
         var pistol = Math.Max(0, config.PistolChance);
         var halfBuy = Math.Max(0, config.HalfBuyChance);
         var fullBuy = Math.Max(0, config.FullBuyChance);
-        var total = pistol + halfBuy + fullBuy;
+        var specials = (config.SpecialRounds ?? []).Where(s => s != null!).ToList();
+        var total = pistol + halfBuy + fullBuy + specials.Sum(s => Math.Max(0, s.Chance));
 
         if (total <= 0)
         {
@@ -57,6 +72,28 @@ public static class RoundTypeSelector
             return RoundType.Pistol;
         }
 
-        return roll < pistol + halfBuy ? RoundType.HalfBuy : RoundType.FullBuy;
+        roll -= pistol;
+
+        if (roll < halfBuy)
+        {
+            return RoundType.HalfBuy;
+        }
+
+        roll -= halfBuy;
+
+        foreach (var s in specials)
+        {
+            var chance = Math.Max(0, s.Chance);
+
+            if (roll < chance)
+            {
+                special = s;
+                return RoundType.Special;
+            }
+
+            roll -= chance;
+        }
+
+        return RoundType.FullBuy;
     }
 }

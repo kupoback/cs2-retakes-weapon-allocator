@@ -61,6 +61,7 @@ public class RetakeCapability
             RoundType.Pistol when pistolRoundsLeft > 0 => $"pistol rounds, {pistolRoundsLeft} rounds left",
             RoundType.Pistol => "pistol round",
             RoundType.HalfBuy => "half buy round",
+            RoundType.Special when CurrentSpecialRound != null => CurrentSpecialRound.Name + " round",
             RoundType.Vote when CurrentVote != null! => CurrentVote.Vote.Description + " mode",
             _ when Core.Config.RoundTypes.Enabled => "full buy round",
             _ => "normal mode"

@@ -2,6 +2,7 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
+using RetakesAllocator.Modules.Config;
 using RetakesAllocator.Modules.Models;
 using RetakesAllocator.Modules.Votes;
 
@@ -356,6 +357,32 @@ public class Allocator(Player player)
         var secondary = isT ? PistolsT[SecondaryWeaponT].Item : PistolsCT[SecondaryWeaponCt].Item;
 
         CCsPlayerController.GiveNamedItem(secondary);
+        CCsPlayerController.GiveNamedItem(CsItem.Knife);
+
+        if (CCsPlayerController.Team == CsTeam.CounterTerrorist)
+        {
+           GiveCtEquipment();
+        }
+    }
+
+    /// <summary>
+    /// Special-round loadout: every weapon in the team's list, e.g. just a deagle, plus a knife.
+    /// Armour, grenades and the taser are handed out by the caller according to the round's config.
+    /// </summary>
+    public void AllocateSpecialRound(SpecialRoundConfig special)
+    {
+        if (!CanAllocate())
+        {
+            return;
+        }
+
+        var weapons = CCsPlayerController.Team == CsTeam.Terrorist ? special.WeaponsT : special.WeaponsCt;
+
+        foreach (var weapon in weapons)
+        {
+            CCsPlayerController.GiveNamedItem(weapon);
+        }
+
         CCsPlayerController.GiveNamedItem(CsItem.Knife);
 
         if (CCsPlayerController.Team == CsTeam.CounterTerrorist)

@@ -162,6 +162,30 @@ public class RoundTypesConfig
     public int PistolChance { get; set; } = 15;
     public int HalfBuyChance { get; set; } = 25;
     public int FullBuyChance { get; set; } = 60;
+
+    /// <summary>Extra round types such as deagle only. Each one's Chance is a weight like the three above.</summary>
+    public List<SpecialRoundConfig> SpecialRounds { get; set; } = [];
+}
+
+/// <summary>
+/// A round where everyone gets the same fixed weapons, e.g. deagle only or scouts only. Every
+/// weapon in the team's list is given, plus a knife and a defuser for CTs.
+/// </summary>
+public class SpecialRoundConfig
+{
+    /// <summary>Shown in the round announcement as "Retake {Name} round."</summary>
+    public string Name { get; set; } = string.Empty;
+    public int Chance { get; set; } = 0;
+
+    public List<string> WeaponsT { get; set; } = [];
+    public List<string> WeaponsCt { get; set; } = [];
+
+    public bool GiveArmor { get; set; } = true;
+    public bool GiveHelmet { get; set; } = false;
+    public bool GiveNades { get; set; } = false;
+
+    /// <summary>Decides the taser for this round on its own, whatever Taser.Enabled says.</summary>
+    public bool GiveTaser { get; set; } = false;
 }
 
 /// <summary>

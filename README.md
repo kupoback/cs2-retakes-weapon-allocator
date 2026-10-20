@@ -284,7 +284,7 @@ Changes are applied on hot reload or via `css_weapons_reload`.
 
 This fork adds random round types on top of upstream. Instead of every round after the
 opening pistol rounds being a full buy, each round can be a **pistol**, **half-buy** or
-**full-buy** round. The defaults match upstream: with `RoundTypes.Enabled` left at
+**full-buy** round, or one of your own **special rounds** such as deagle only or scouts only. The defaults match upstream: with `RoundTypes.Enabled` left at
 `false` and the other new options untouched, the plugin behaves exactly like upstream.
 
 ### How a round's type is chosen
@@ -307,10 +307,12 @@ Warmup is never affected: everyone gets their normal full loadout there.
 | Pistol | The fixed `PistolRound.WeaponT` / `WeaponCt`, plus a knife | From `PistolRound` | Never |
 | Half buy | A random weapon from the team's `HalfBuy` list, the player's saved pistol, and a knife | From `HalfBuy` | Never |
 | Full buy | The player's saved loadout, as upstream | Kevlar + helmet and grenades | As normal |
+| Special | The fixed weapons from that special round's `WeaponsT` / `WeaponsCt`, plus a knife | From the special round | Never |
 | Vote | Whatever the vote defines | From the vote's own flags | As the vote defines |
 
-CTs also get a defuse kit on pistol and half-buy rounds. With `Taser.Enabled` on, every
-round type except pistol rounds also gives a Zeus.
+CTs also get a defuse kit on pistol, half-buy and special rounds. With `Taser.Enabled` on,
+every round type except pistol rounds also gives a Zeus. Special rounds ignore
+`Taser.Enabled` and use their own `GiveTaser` instead.
 
 Pistol rounds use the fixed pistols, not each player's saved pistol, so everyone is on
 equal terms. Random pistol rounds use the same `PistolRound` settings as the opening ones.
@@ -334,7 +336,8 @@ rounds (`Nades`), which is refilled every round.
   "Enabled": false,
   "PistolChance": 15,
   "HalfBuyChance": 25,
-  "FullBuyChance": 60
+  "FullBuyChance": 60,
+  "SpecialRounds": []
 },
 "HalfBuy": {
   "WeaponsT": [ "weapon_mac10", "weapon_mp7", "weapon_ump45", "weapon_sawedoff" ],
@@ -362,6 +365,43 @@ These are the defaults. To turn round types on, set `RoundTypes.Enabled` to `tru
   **weights**, not percentages, so they don't need to add up to 100: `1`, `1`, `2` means
   25% pistol, 25% half buy and 50% full buy. Set a chance to `0` to never roll that type.
   If all three are `0`, every round is a full buy.
+- `SpecialRounds` — extra round types where everyone gets the same fixed weapons. Empty
+  by default. Each entry has:
+  - `Name` — shown in the round announcement, e.g. `deagle only` gives
+    "Retake deagle only round."
+  - `Chance` — a weight, rolled together with the three chances above.
+  - `WeaponsT` / `WeaponsCt` — every weapon in the list is given, as `weapon_*` class
+    names. Leave out a pistol for no secondary.
+  - `GiveArmor`, `GiveHelmet`, `GiveNades` — the same as for `PistolRound`.
+  - `GiveTaser` — give a Zeus. This replaces `Taser.Enabled` for that round.
+
+  For example, a deagle round with full armour and grenades, and a scouts-only round
+  with full armour, no pistol and no grenades, both with a taser:
+
+  ```json
+  "SpecialRounds": [
+    {
+      "Name": "deagle only",
+      "Chance": 10,
+      "WeaponsT": [ "weapon_deagle" ],
+      "WeaponsCt": [ "weapon_deagle" ],
+      "GiveArmor": true,
+      "GiveHelmet": true,
+      "GiveNades": true,
+      "GiveTaser": true
+    },
+    {
+      "Name": "scouts only",
+      "Chance": 10,
+      "WeaponsT": [ "weapon_ssg08" ],
+      "WeaponsCt": [ "weapon_ssg08" ],
+      "GiveArmor": true,
+      "GiveHelmet": true,
+      "GiveNades": false,
+      "GiveTaser": true
+    }
+  ]
+  ```
 
 **`HalfBuy`**
 
@@ -375,7 +415,7 @@ These are the defaults. To turn round types on, set `RoundTypes.Enabled` to `tru
 Saving a new loadout in the menu normally swaps a player's weapons straight away. With
 round types:
 
-- **Pistol and vote rounds:** nothing is swapped. The new loadout applies from the next
+- **Pistol, special and vote rounds:** nothing is swapped. The new loadout applies from the next
   round it is used.
 - **Half buys:** only a pistol change is applied straight away. A new rifle choice is
   saved for the next full-buy round.
@@ -388,6 +428,7 @@ The "Retake ..." chat message at the start of each round names the round type:
 - `pistol rounds, 2 rounds left` — an opening pistol round
 - `pistol round` — a random pistol round
 - `half buy round`
+- `<name> round` — a special round, e.g. `deagle only round`
 - `full buy round` — shown when round types are enabled
 - `<vote description> mode` — a running vote, e.g. `pistol only mode`
 - `normal mode` — round types are disabled, as upstream

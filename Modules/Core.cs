@@ -41,6 +41,8 @@ public class Core : BasePlugin, IPluginConfig<RetakesAllocatorConfig>
     public static List<Player> Players = new();
     public static int RoundsCounter = 0;
     public static RoundType CurrentRoundType = RoundType.FullBuy;
+    /// <summary>The rolled special round while CurrentRoundType is Special, otherwise null.</summary>
+    public static SpecialRoundConfig? CurrentSpecialRound;
     public static AsyncVoteManager CurrentVote = null!;
     public static ConVar mp_damage_headshot_only = null!;
 

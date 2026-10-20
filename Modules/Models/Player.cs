@@ -144,11 +144,11 @@ public class Player
             return;
         }
 
-        // A pistol round and a vote both deliberately override the saved loadout, so applying it
-        // now would hand out weapons this round is not supposed to allow. Warmup has no such rules.
+        // Pistol, special and vote rounds all deliberately override the saved loadout, so applying
+        // it now would hand out weapons this round is not supposed to allow. Warmup has no such rules.
         if (GetGameRules() is not { WarmupPeriod: true })
         {
-            if (CurrentRoundType is RoundType.Pistol or RoundType.Vote)
+            if (CurrentRoundType is RoundType.Pistol or RoundType.Special or RoundType.Vote)
             {
                 return;
             }
@@ -207,8 +207,13 @@ public class Player
 
         GiveLoadout(warmup);
 
-        // Every round type except pistol rounds, so it lives here rather than in each branch.
-        if (Core.Config.Taser.Enabled && (warmup || CurrentRoundType != RoundType.Pistol))
+        // Every round type except pistol rounds, so it lives here rather than in each branch. A
+        // special round decides for itself.
+        var giveTaser = !warmup && CurrentRoundType == RoundType.Special && CurrentSpecialRound != null
+            ? CurrentSpecialRound.GiveTaser
+            : Core.Config.Taser.Enabled && (warmup || CurrentRoundType != RoundType.Pistol);
+
+        if (giveTaser)
         {
             WeaponsAllocator.AllocateTaser();
         }
@@ -257,6 +262,26 @@ public class Player
                 }
 
                 if (halfBuy.GiveNades)
+                {
+                    WeaponsAllocator.AllocateNades();
+                }
+
+                return;
+            }
+
+            // Always set together with Special, but fall through to a full buy rather than risk a null.
+            case RoundType.Special when CurrentSpecialRound != null:
+            {
+                var special = CurrentSpecialRound;
+
+                WeaponsAllocator.AllocateSpecialRound(special);
+
+                if (special.GiveArmor)
+                {
+                    WeaponsAllocator.AllocateArmor(special.GiveHelmet);
+                }
+
+                if (special.GiveNades)
                 {
                     WeaponsAllocator.AllocateNades();
                 }
