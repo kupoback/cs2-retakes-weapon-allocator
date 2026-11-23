@@ -56,12 +56,15 @@ jobs:
         run: |
           cd build
           zip -r "../RetakesAllocator-${{ github.ref_name }}.zip" addons
+          tar -czf "../RetakesAllocator-${{ github.ref_name }}.tar.gz" addons
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           name: RetakesAllocator ${{ github.ref_name }}
-          files: RetakesAllocator-${{ github.ref_name }}.zip
+          files: |
+            RetakesAllocator-${{ github.ref_name }}.zip
+            RetakesAllocator-${{ github.ref_name }}.tar.gz
           generate_release_notes: true
           body: |
             ## RetakesAllocator ${{ github.ref_name }}
@@ -86,6 +89,8 @@ jobs:
               instead of one grenade each (`Nades.DistributeAllChance`).
             - **Vote duration**: a passed vote can end after a set number of rounds
               (`Votes.RoundsPerVote`), and admins can end one with `css_resetvotes`.
+            - **SQLite to MySQL**: switching `DbConnection.Provider` to `mysql` copies players'
+              saved loadouts over from the old SQLite file on start.
             - The round announcement names the round type, e.g. "Retake deagle only round."
             - Fixed a crash when a saved weapon pointed past the end of a weapon list.
             - Fixed `!guns` disconnecting a player when opening the menu ran slow
@@ -101,7 +106,7 @@ jobs:
             - A database: **MySQL/MariaDB** or **SQLite** (a local file, no server required)
 
             ### Installation
-            1. Download `RetakesAllocator-${{ github.ref_name }}.zip` from the assets below.
+            1. Download `RetakesAllocator-${{ github.ref_name }}.zip` (or `.tar.gz`) from the assets below.
             2. Extract it into your server's `game/csgo/` directory. The archive places the
                plugin at `addons/counterstrikesharp/plugins/RetakesAllocator/`.
             3. Restart the server (or run `css_plugins load RetakesAllocator`). On first load
