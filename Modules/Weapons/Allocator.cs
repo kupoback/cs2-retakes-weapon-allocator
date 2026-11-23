@@ -91,8 +91,16 @@ public class Allocator(Player player)
 
         _nadeRound++;
         _distributeAllNades = Random.Shared.NextDouble() * 100 < Core.NadesConfig.DistributeAllChance;
+        var total = ReadIntConVar("ammo_grenade_limit_total", 4);
+        var maxPerPlayer = Core.NadesConfig.MaxPerPlayer;
+
+        if (maxPerPlayer > 0)
+        {
+            total = Math.Min(total, maxPerPlayer);
+        }
+
         _grenadeLimits = new GrenadeLimits(
-            ReadIntConVar("ammo_grenade_limit_total", 4),
+            total,
             ReadIntConVar("ammo_grenade_limit_flashbang", 2),
             ReadIntConVar("ammo_grenade_limit_default", 1));
     }

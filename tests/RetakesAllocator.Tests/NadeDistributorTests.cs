@@ -44,6 +44,22 @@ public class NadeDistributorTests
     }
 
     [Fact]
+    public void TwoPlayers_CappedAtTwoEach()
+    {
+        // 1 molotov, 2 flashes, 2 smokes and 2 HEs for a 2-player team, with MaxPerPlayer = 2.
+        var capped = Cs2 with { Total = 2 };
+
+        for (var seed = 0; seed < 500; seed++)
+        {
+            var pool = Pool(flashbangs: 2, smokes: 2, molotovs: 1, heGrenades: 2);
+            var hands = Distribute(pool, 2, new Random(seed), capped);
+
+            hands.ForEach(hand => AssertLegal(hand, capped));
+            Assert.All(hands, hand => Assert.Equal(2, hand.Count));
+        }
+    }
+
+    [Fact]
     public void ThreePlayers_SevenGrenades_AllHandedOut()
     {
         // The example from the request: 1 smoke, 2 molotovs, 2 HEs and 2 flashes for 3 CTs.

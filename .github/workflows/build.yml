@@ -86,7 +86,8 @@ jobs:
             - **AWP minimum team size**: no AWP for a team below a set size (`Awp.MinTeamSize`).
             - **Full grenade kits**: a chance each round that every grenade in a team's kit is
               handed out, split at random between its players within the game's carry limits,
-              instead of one grenade each (`Nades.DistributeAllChance`).
+              instead of one grenade each (`Nades.DistributeAllChance`), at most 2 per player by
+              default (`Nades.MaxPerPlayer`).
             - **Vote duration**: a passed vote can end after a set number of rounds
               (`Votes.RoundsPerVote`), and admins can end one with `css_resetvotes`.
             - **SQLite to MySQL**: switching `DbConnection.Provider` to `mysql` copies players'

@@ -233,6 +233,7 @@ minimum team size, the taser, and one-round votes. The real defaults are listed 
   },
   "Nades": {
     "DistributeAllChance": 0,
+    "MaxPerPlayer": 2,
     "CtNades": { "Flashbangs": 2, "Smokes": 1, "Molotovs": 1, "HeGrenades": 1 },
     "TNades": { "Flashbangs": 1, "Smokes": 1, "Molotovs": 1, "HeGrenades": 1 }
   },
@@ -308,7 +309,8 @@ config file above:
   `ammo_grenade_limit_flashbang`, `ammo_grenade_limit_default`; by default 4 in all,
   2 flashes and 1 of each other kind). It is rolled once per round for both teams.
   Anything the team can't carry between them is left out. `0`, the default, never does
-  this, as upstream.
+  this, as upstream. `MaxPerPlayer` (custom build, default `2`) caps how many grenades one
+  player gets on those rounds; `0` leaves only the game's limits.
 - **`Votes`** — each vote defines a chat command (`css_<Command>`), the weapons it
   grants per team (`WeaponsT` / `WeaponsCt`), and the flags `OnlyHeadshots`,
   `GiveWeapons`, `GiveNades`, `GiveKnife`, `GiveArmor`, `GiveHelmet`. Admins can
@@ -488,7 +490,7 @@ The "Retake ..." chat message at the start of each round names the round type:
   disconnected (`NETWORK_DISCONNECT_OVERFLOW`). A player's menu is also closed when they
   disconnect, so it opens again for them when they come back. An open slower than 50 ms,
   or one that fails, is logged to the server console.
-- The plugin reports its version as `3.2.6-roundtypes.5` (based on upstream 3.2.6).
+- The plugin reports its version as `3.2.6-roundtypes.6` (based on upstream 3.2.6).
 
 ## Setup for development
 

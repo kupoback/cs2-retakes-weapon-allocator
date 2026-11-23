@@ -236,6 +236,13 @@ public class NadesConfig
     /// </summary>
     public double DistributeAllChance { get; set; } = 0;
 
+    /// <summary>
+    /// On a full-kit round (<see cref="DistributeAllChance"/>), the most grenades one player is
+    /// given. Grenades the team cannot carry under this cap are left out that round. 0 means only
+    /// the game's own carry limits apply.
+    /// </summary>
+    public int MaxPerPlayer { get; set; } = 2;
+
     public Nades CtNades { get; set; } = new Nades()
     {
         Flashbangs = 2,

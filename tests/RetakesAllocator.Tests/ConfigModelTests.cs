@@ -27,6 +27,7 @@ public class ConfigModelTests
         Assert.Equal(2, config.Nades.CtNades.Flashbangs);
         Assert.Equal(1, config.Nades.TNades.Flashbangs);
         Assert.Equal(0, config.Nades.DistributeAllChance);
+        Assert.Equal(2, config.Nades.MaxPerPlayer);
 
         // Votes defaults.
         Assert.Equal(60, config.Votes.RequiredPercentage);
