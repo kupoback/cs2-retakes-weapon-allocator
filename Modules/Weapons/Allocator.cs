@@ -433,6 +433,9 @@ public class Allocator(Player player)
     /// pistol, and a knife. Never an AWP - the round-start roll is cleared for half buys.
     /// Armour and grenades are handed out by the caller according to the HalfBuy config.
     /// </summary>
+    /// <summary>One in this many Terrorists gets a sawed-off on a half buy.</summary>
+    private const int SawedOffOdds = 1000;
+
     public void AllocateHalfBuy()
     {
         if (!CanAllocate())
@@ -443,7 +446,13 @@ public class Allocator(Player player)
         var isT = CCsPlayerController.Team == CsTeam.Terrorist;
         var pool = isT ? Core.Config.HalfBuy.WeaponsT : Core.Config.HalfBuy.WeaponsCt;
 
-        if (pool.Count > 0)
+        // A deliberate in-joke, not a config option: on a half buy, one Terrorist in a thousand gets
+        // stuck with a sawed-off in place of their primary.
+        if (isT && Random.Shared.Next(SawedOffOdds) == 0)
+        {
+            CCsPlayerController.GiveNamedItem("weapon_sawedoff");
+        }
+        else if (pool.Count > 0)
         {
             CCsPlayerController.GiveNamedItem(Utils.GetRandomFromList(pool));
         }
