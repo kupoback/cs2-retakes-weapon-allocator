@@ -1,5 +1,6 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using RetakesAllocator.Modules.Config;
@@ -49,6 +50,21 @@ public class Allocator(Player player)
     private static Nades _ctNades = new();
     private static Nades _nades = new();
 
+    /// <summary>
+    /// Whether this round splits each team's whole grenade pool between its players instead of
+    /// giving everyone one grenade. Rolled once per round for both teams, so neither side gets the
+    /// bigger kit alone.
+    /// </summary>
+    private static bool _distributeAllNades;
+
+    private static GrenadeLimits _grenadeLimits = new();
+
+    /// <summary>Counts <see cref="ResetNades"/> calls, so a player can tell whether their grenades are from this round.</summary>
+    private static int _nadeRound;
+
+    private int _nadesGivenRound = -1;
+    private List<CsItem> _nadesGiven = new();
+
     private CCSPlayerController CCsPlayerController => player.Controller;
 
     public int PrimaryWeaponT = 0;
@@ -72,6 +88,26 @@ public class Allocator(Player player)
     {
         _ctNades = new Nades(Core.NadesConfig.CtNades);
         _nades = new Nades(Core.NadesConfig.TNades);
+
+        _nadeRound++;
+        _distributeAllNades = Random.Shared.NextDouble() * 100 < Core.NadesConfig.DistributeAllChance;
+        _grenadeLimits = new GrenadeLimits(
+            ReadIntConVar("ammo_grenade_limit_total", 4),
+            ReadIntConVar("ammo_grenade_limit_flashbang", 2),
+            ReadIntConVar("ammo_grenade_limit_default", 1));
+    }
+
+    private static int ReadIntConVar(string name, int fallback)
+    {
+        try
+        {
+            var conVar = ConVar.Find(name);
+            return conVar == null ? fallback : conVar.GetPrimitiveValue<int>();
+        }
+        catch (Exception)
+        {
+            return fallback;
+        }
     }
 
     public bool SetupGiveAwp()
@@ -106,16 +142,40 @@ public class Allocator(Player player)
             return;
         }
 
+        if (CCsPlayerController.Team is < CsTeam.Terrorist or > CsTeam.CounterTerrorist)
+        {
+            return;
+        }
+
+        // Spawn can fire twice for one player. Hand back what they were given rather than drawing
+        // again, which would take grenades meant for their teammates.
+        if (_nadesGivenRound == _nadeRound)
+        {
+            foreach (var given in _nadesGiven)
+            {
+                CCsPlayerController.GiveNamedItem(given);
+            }
+
+            return;
+        }
+
+        _nadesGivenRound = _nadeRound;
+        _nadesGiven = new List<CsItem>();
+
         switch (CCsPlayerController.Team)
         {
-            case < CsTeam.Terrorist:
-            case > CsTeam.CounterTerrorist:
             case CsTeam.Terrorist when !_nades.HasNades():
             case CsTeam.CounterTerrorist when !_ctNades.HasNades():
                 return;
         }
 
         var nades = CCsPlayerController.Team == CsTeam.Terrorist ? _nades : _ctNades;
+
+        if (_distributeAllNades)
+        {
+            AllocateNadesShare(nades);
+            return;
+        }
 
         CsItem grenade;
         do{
@@ -125,7 +185,31 @@ public class Allocator(Player player)
 
         nades.RemoveNade(grenade);
 
+        _nadesGiven.Add(grenade);
         CCsPlayerController.GiveNamedItem(grenade);
+    }
+
+    /// <summary>
+    /// Gives this player their share of the team's whole grenade pool, leaving enough for the
+    /// teammates who have not been given theirs yet.
+    /// </summary>
+    private void AllocateNadesShare(Nades nades)
+    {
+        var team = CCsPlayerController.Team;
+
+        var playersLeft = 1 + Core.Players.Count(other =>
+            other != player
+            && other.WeaponsAllocator._nadesGivenRound != _nadeRound
+            && other.Controller is { IsValid: true, PawnIsAlive: true }
+            && other.Controller.Team == team);
+
+        foreach (var grenade in NadeDistributor.TakeShare(nades, playersLeft, _grenadeLimits, Random.Shared))
+        {
+            var item = grenade == CsItem.Molotov && team == CsTeam.CounterTerrorist ? CsItem.Incendiary : grenade;
+
+            _nadesGiven.Add(item);
+            CCsPlayerController.GiveNamedItem(item);
+        }
     }
 
     private bool CheckIfNadeAvailable(Nades nades, CsItem nade)
@@ -178,11 +262,21 @@ public class Allocator(Player player)
 
         CCsPlayerController.RemoveItemBySlot(gear_slot_t.GEAR_SLOT_RIFLE);
         CCsPlayerController.RemoveItemBySlot(gear_slot_t.GEAR_SLOT_PISTOL);
-        CCsPlayerController.RemoveItemBySlot(gear_slot_t.GEAR_SLOT_GRENADES);
+        // Removing by slot only takes one item, and a player can now hold several grenades.
+        foreach (var grenade in GrenadeDesignerNames)
+        {
+            CCsPlayerController.RemoveItemByDesignerName(grenade, true);
+        }
         CCsPlayerController.RemoveItemBySlot(gear_slot_t.GEAR_SLOT_KNIFE);
         // The taser shares the knife slot, and removing by slot only takes one item.
         CCsPlayerController.RemoveItemByDesignerName("weapon_taser", true);
     }
+
+    private static readonly string[] GrenadeDesignerNames =
+    [
+        "weapon_hegrenade", "weapon_flashbang", "weapon_smokegrenade", "weapon_molotov",
+        "weapon_incgrenade", "weapon_decoy"
+    ];
 
     private bool CanAllocate() =>
         player.Controller.IsValid

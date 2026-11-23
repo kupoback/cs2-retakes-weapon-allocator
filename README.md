@@ -225,6 +225,7 @@ minimum team size, the taser, and one-round votes. The real defaults are listed 
     ]
   },
   "Nades": {
+    "DistributeAllChance": 0,
     "CtNades": { "Flashbangs": 2, "Smokes": 1, "Molotovs": 1, "HeGrenades": 1 },
     "TNades": { "Flashbangs": 1, "Smokes": 1, "Molotovs": 1, "HeGrenades": 1 }
   },
@@ -293,7 +294,14 @@ config file above:
   `PistolsCt`). Each entry is an `Item` (the `weapon_*` class name) and the
   `DisplayName` shown in the in-game menu.
 - **`Nades`** — per-team grenade kits (`CtNades` / `TNades`): how many of each
-  grenade a player is given.
+  grenade the whole team has to share. Normally each player gets one grenade at random
+  from the kit until it runs out. `DistributeAllChance` (custom build) is the percent
+  chance (0-100) each round that the whole kit is handed out instead, split at random
+  between the team's players within the game's carry limits (`ammo_grenade_limit_total`,
+  `ammo_grenade_limit_flashbang`, `ammo_grenade_limit_default`; by default 4 in all,
+  2 flashes and 1 of each other kind). It is rolled once per round for both teams.
+  Anything the team can't carry between them is left out. `0`, the default, never does
+  this, as upstream.
 - **`Votes`** — each vote defines a chat command (`css_<Command>`), the weapons it
   grants per team (`WeaponsT` / `WeaponsCt`), and the flags `OnlyHeadshots`,
   `GiveWeapons`, `GiveNades`, `GiveKnife`, `GiveArmor`, `GiveHelmet`. Admins can

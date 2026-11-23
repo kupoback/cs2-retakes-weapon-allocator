@@ -229,6 +229,13 @@ public class TaserConfig
 
 public class NadesConfig
 {
+    /// <summary>
+    /// Percent chance (0-100) each round that every grenade in a team's kit is handed out, split at
+    /// random between the team's players within the game's carry limits, instead of one grenade per
+    /// player. Rolled once per round for both teams. 0 (the default, as upstream) never does.
+    /// </summary>
+    public double DistributeAllChance { get; set; } = 0;
+
     public Nades CtNades { get; set; } = new Nades()
     {
         Flashbangs = 2,
