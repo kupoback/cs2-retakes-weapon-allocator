@@ -110,6 +110,13 @@ The `DbConnection.Provider` field selects the database engine:
   relative to the plugin's directory unless the path is absolute).
 - `"mysql"` — MySQL/MariaDB; fill in `Host`, `Database`, `User`, `Password`, `Port`.
 
+**Moving from SQLite to MySQL** (custom build): switch `Provider` to `"mysql"` and leave
+`SqlitePath` pointing at the old file. On start the plugin copies every player MySQL doesn't
+have yet from that file, with their saved weapons and AWP setting, and logs
+`Imported <n> players' loadouts from <path> into MySQL`. Players already in MySQL keep what
+they have there, so it's safe on every restart, and the SQLite file is never changed. Switch
+with the server empty: loadouts are saved when a player disconnects.
+
 If the database can't be reached the plugin logs an error and keeps running, but
 weapon preferences won't load or persist — so make sure `DbConnection` is correct.
 

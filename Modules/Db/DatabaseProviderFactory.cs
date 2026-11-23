@@ -14,12 +14,13 @@ public static class DatabaseProviderFactory
     public static IDatabaseProvider Create(ConnectionConfig config, string baseDirectory)
     {
         if (!config.IsSqlite()) return new MySqlProvider(config.BuildConnectionString());
-        var path = Path.IsPathRooted(config.SqlitePath)
+
+        return new SqliteProvider($"Data Source={SqliteFilePath(config, baseDirectory)}");
+    }
+
+    /// <summary>Where the configured SQLite file is, whichever provider is in use.</summary>
+    public static string SqliteFilePath(ConnectionConfig config, string baseDirectory) =>
+        Path.IsPathRooted(config.SqlitePath)
             ? config.SqlitePath
             : Path.Combine(baseDirectory, config.SqlitePath);
-
-        var connectionString = $"Data Source={path}";
-        return new SqliteProvider(connectionString);
-
-    }
 }

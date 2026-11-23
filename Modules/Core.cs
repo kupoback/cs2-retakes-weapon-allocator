@@ -117,10 +117,46 @@ public class Core : BasePlugin, IPluginConfig<RetakesAllocatorConfig>
             Store = new WeaponStore(provider);
             Store.InitializeAsync().GetAwaiter().GetResult();
             Plugin.Logger.LogInformation("Connected to the {Provider} database", Config.DbConnection.Provider);
+
+            if (!Config.DbConnection.IsSqlite())
+            {
+                ImportFromSqlite();
+            }
         }
         catch (Exception e)
         {
             Plugin.Logger.LogError(e, "Failed to connect to the {Provider} database; check the DbConnection section of the config", Config.DbConnection.Provider);
+        }
+    }
+
+    /// <summary>
+    /// Moving from SQLite to MySQL: copies the saved loadouts of players MySQL does not have yet from
+    /// the old SQLite file. Runs on every start while the file exists; after the first it finds
+    /// nobody to copy. The file is left as it is.
+    /// </summary>
+    private static void ImportFromSqlite()
+    {
+        var path = DatabaseProviderFactory.SqliteFilePath(Config.DbConnection, Plugin.ModuleDirectory);
+
+        // Opening a SQLite path that is not there creates an empty file, so check first.
+        if (!File.Exists(path))
+        {
+            return;
+        }
+
+        try
+        {
+            var sqlite = new WeaponStore(new SqliteProvider($"Data Source={path}"));
+            var imported = Store.ImportFromAsync(sqlite).GetAwaiter().GetResult();
+
+            if (imported > 0)
+            {
+                Plugin.Logger.LogInformation("Imported {Count} players' loadouts from {Path} into MySQL", imported, path);
+            }
+        }
+        catch (Exception e)
+        {
+            Plugin.Logger.LogError(e, "Failed to import loadouts from {Path} into MySQL; it will be retried on the next start", path);
         }
     }
 

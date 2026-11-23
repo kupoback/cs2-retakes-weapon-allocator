@@ -56,6 +56,47 @@ public class WeaponStore
             new { auth, name });
     }
 
+    /// <summary>
+    /// Copies every player from <paramref name="source"/> that this store does not have yet. Used
+    /// when a server moves from SQLite to MySQL. A player already here is left alone, so their
+    /// newer choices win and running it again copies nothing. Returns how many were copied.
+    /// </summary>
+    public async Task<int> ImportFromAsync(WeaponStore source)
+    {
+        await using var conn = _provider.CreateConnection();
+        await conn.OpenAsync();
+
+        var existing = (await conn.QueryAsync<string>("SELECT auth FROM weapons")).ToHashSet();
+
+        List<WeaponPreference> rows;
+
+        await using (var sourceConn = source._provider.CreateConnection())
+        {
+            await sourceConn.OpenAsync();
+            rows = (await sourceConn.QueryAsync<WeaponPreference>(
+                "SELECT auth, name, t_primary, ct_primary, t_secondary, ct_secondary, give_awp FROM weapons"))
+                .Where(row => !existing.Contains(row.Auth))
+                .ToList();
+        }
+
+        if (rows.Count == 0)
+        {
+            return 0;
+        }
+
+        // One transaction, so a failure part way copies nothing and the next start tries again.
+        await using var transaction = await conn.BeginTransactionAsync();
+        await conn.ExecuteAsync(
+            """
+            INSERT INTO weapons (auth, name, t_primary, ct_primary, t_secondary, ct_secondary, give_awp)
+            VALUES (@Auth, @Name, @TPrimary, @CtPrimary, @TSecondary, @CtSecondary, @GiveAwp)
+            """,
+            rows, transaction);
+        await transaction.CommitAsync();
+
+        return rows.Count;
+    }
+
     /// <summary>Persists the four weapon preference columns plus give_awp for an existing user.</summary>
     public async Task SaveUserAsync(WeaponPreference pref)
     {
