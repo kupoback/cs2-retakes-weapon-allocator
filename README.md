@@ -8,7 +8,7 @@ This plugin runs alongside B3none's retakes implementation: https://github.com/b
 
 ## Requirements
 
-- **CounterStrikeSharp on .NET 10** (API 1.0.374 or newer). The loadout menu is driven through
+- **CounterStrikeSharp on .NET 10** (API 1.0.380 or newer). The loadout menu is driven through
   [PanoramaManager](https://www.nuget.org/packages/PanoramaManager), which drives the HUD through
   CounterStrikeSharp's `CCSCustomHudLayout` API, added in 1.0.374.
 - **[MultiAddonManager](https://github.com/Source2ZE/MultiAddonManager)** — required for the
@@ -476,7 +476,7 @@ The "Retake ..." chat message at the start of each round names the round type:
   back to the first weapon in the list.
 - If a vote is cancelled during a round that started as a vote round, players who spawn
   after that get a normal full buy.
-- The plugin reports its version as `3.2.6-roundtypes.1` (based on upstream 3.2.6).
+- The plugin reports its version as `3.2.6-roundtypes.2` (based on upstream 3.2.6).
 
 ## Setup for development
 
