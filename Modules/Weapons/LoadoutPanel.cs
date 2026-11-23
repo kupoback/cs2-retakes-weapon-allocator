@@ -110,7 +110,43 @@ public static class LoadoutPanel
         Panorama.Shutdown();
     }
 
+    /// <summary>Opening takes longer than this is logged, so a slow open can be told from a lost one.</summary>
+    private const long SlowOpenMs = 50;
+
+    /// <summary>
+    /// Opens the card on the next frame. A chat command runs while the engine is still processing
+    /// that player's message, and the whole open - a hundred-odd per-player writes - counts against
+    /// their per-message CPU budget. One slow open there (a cold JIT, a GC pause) and the engine
+    /// drops the player with NETWORK_DISCONNECT_OVERFLOW. On the next frame it costs them nothing.
+    /// </summary>
     public static void Open(CCSPlayerController player)
+    {
+        var slot = player.Slot;
+        var index = player.Index;
+
+        Server.NextFrame(() =>
+        {
+            var current = Utilities.GetPlayerFromSlot(slot);
+
+            // Gone, or somebody else in the slot already.
+            if (current == null || !current.IsValid || current.Index != index)
+            {
+                return;
+            }
+
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+            OpenNow(current);
+            timer.Stop();
+
+            if (timer.ElapsedMilliseconds > SlowOpenMs)
+            {
+                Plugin.Logger.LogWarning("Opening the loadout menu for {Player} took {Ms} ms",
+                    current.PlayerName, timer.ElapsedMilliseconds);
+            }
+        });
+    }
+
+    private static void OpenNow(CCSPlayerController player)
     {
         if (_panel == null)
         {
@@ -156,12 +192,27 @@ public static class LoadoutPanel
         // the diff below skips every icon it believes is still applied.
         AppliedIcons.Remove(player.Slot);
         Render(player, draft);
+
+        if (!_panel.IsOpenFor(player))
+        {
+            Plugin.Logger.LogWarning("The loadout menu did not open for {Player}; css_panorama_diag shows the panel state",
+                player.PlayerName);
+            PrintToChat(player, $"{Prefix} The loadout menu didn't open - try again in a moment.");
+            Forget(player.Slot);
+        }
     }
 
     public static void OnPlayerDisconnect(int slot)
     {
-        // The library scrubs the slot's classes itself on leave and on the next Open, so nothing
-        // recorded here can outlive the session it was drawn in.
+        // Close the library's session along with our own state. Without it the library holds a
+        // session for the slot that nobody will redraw or close, and it is still there when the
+        // player - or whoever takes the slot - next opens the menu.
+        _panel?.Close(slot);
+        Forget(slot);
+    }
+
+    private static void Forget(int slot)
+    {
         Drafts.Remove(slot);
         AppliedIcons.Remove(slot);
     }
@@ -210,7 +261,7 @@ public static class LoadoutPanel
 
         if (e.Action == PanelAction.Close)
         {
-            OnPlayerDisconnect(e.Player.Slot);
+            Forget(e.Player.Slot);
             return;
         }
 

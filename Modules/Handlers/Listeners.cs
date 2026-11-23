@@ -39,10 +39,23 @@ internal static class Listeners
 
     private static void OnClientDisconnect(int playerSlot)
     {
-        var player = Utilities.GetPlayerFromSlot(playerSlot)!;
-        RemovePlayerFromList(player);
-        Votes_OnPlayerDisconnect(player);
+        // First, and by slot: it needs no controller, so nothing below can stop the menu's session
+        // being dropped.
         LoadoutPanel.OnPlayerDisconnect(playerSlot);
+
+        var player = Utilities.GetPlayerFromSlot(playerSlot);
+
+        if (player == null || !player.IsValid)
+        {
+            return;
+        }
+
+        RemovePlayerFromList(player);
+
+        if (player.UserId != null)
+        {
+            Votes_OnPlayerDisconnect(player);
+        }
     }
 
     private static HookResult OnSay(CCSPlayerController? player, CommandInfo command)

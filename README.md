@@ -476,7 +476,12 @@ The "Retake ..." chat message at the start of each round names the round type:
   back to the first weapon in the list.
 - If a vote is cancelled during a round that started as a vote round, players who spawn
   after that get a normal full buy.
-- The plugin reports its version as `3.2.6-roundtypes.2` (based on upstream 3.2.6).
+- `!guns` opens the loadout menu on the next server frame rather than while the chat
+  message is still being processed, so a slow open can no longer get the player
+  disconnected (`NETWORK_DISCONNECT_OVERFLOW`). A player's menu is also closed when they
+  disconnect, so it opens again for them when they come back. An open slower than 50 ms,
+  or one that fails, is logged to the server console.
+- The plugin reports its version as `3.2.6-roundtypes.3` (based on upstream 3.2.6).
 
 ## Setup for development
 

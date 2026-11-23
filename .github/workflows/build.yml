@@ -88,6 +88,9 @@ jobs:
               (`Votes.RoundsPerVote`), and admins can end one with `css_resetvotes`.
             - The round announcement names the round type, e.g. "Retake deagle only round."
             - Fixed a crash when a saved weapon pointed past the end of a weapon list.
+            - Fixed `!guns` disconnecting a player when opening the menu ran slow
+              (`NETWORK_DISCONNECT_OVERFLOW`), and the menu not opening again after a player was
+              dropped with it open.
 
             ### Requirements
             - **CounterStrikeSharp** on .NET 10 (API **1.0.380** or newer) with Metamod:Source
