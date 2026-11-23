@@ -63,7 +63,7 @@ internal static class Events
         // The vote belongs to the match, not to warmup.
         if(!warmup && CurrentVote != null && CurrentVote.Vote.OnlyHeadshots)
         {
-            mp_damage_headshot_only.SetValue(true);
+            mp_damage_headshot_only.Value = true;
         }
 
         return HookResult.Continue;
@@ -78,7 +78,7 @@ internal static class Events
         }
 
         RoundsCounter++;
-        mp_damage_headshot_only.SetValue(false);
+        mp_damage_headshot_only.Value = false;
 
         var endedVote = OnVoteRoundPlayed();
 

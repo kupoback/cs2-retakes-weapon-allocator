@@ -44,13 +44,13 @@ public class Core : BasePlugin, IPluginConfig<RetakesAllocatorConfig>
     /// <summary>The rolled special round while CurrentRoundType is Special, otherwise null.</summary>
     public static SpecialRoundConfig? CurrentSpecialRound;
     public static AsyncVoteManager CurrentVote = null!;
-    public static ConVar mp_damage_headshot_only = null!;
+    public static ConVar<bool> mp_damage_headshot_only = null!;
 
     public override void Load(bool hotReload)
     {
         Plugin = this;
 
-        mp_damage_headshot_only = ConVar.Find("mp_damage_headshot_only")!;
+        mp_damage_headshot_only = ConVar<bool>.Find("mp_damage_headshot_only")!;
 
         if(mp_damage_headshot_only == null!)
         {

@@ -101,8 +101,8 @@ public class Allocator(Player player)
     {
         try
         {
-            var conVar = ConVar.Find(name);
-            return conVar == null ? fallback : conVar.GetPrimitiveValue<int>();
+            var conVar = ConVar<int>.Find(name);
+            return conVar == null ? fallback : conVar.Value;
         }
         catch (Exception)
         {
